@@ -4,6 +4,22 @@ import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import mysql from "mysql2/promise";
 
+// テナントスキーマ取得用SQLで取得したschemaに対して、
+// テナントごとに実行するデータ抽出SQLに記載したSQLを実行してTSVで出力するスクリプト
+
+// ===== 注意 =====
+// 実行前に .env ファイルを用意し、以下の環境変数を設定してください。
+// DB_HOST=your_db_host
+// DB_PORT=3306
+// DB_USER=your_db_user
+// DB_PASSWORD=your_db_password
+// BASE_DATABASE=everdoc
+// TARGET_HOST=target.tenant.host
+// OUTPUT_DIR=output_directory_name
+
+// ===== 使用例 =====
+// node dbsql_loop/index.mjs
+
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);

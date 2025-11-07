@@ -29,3 +29,7 @@ node -v # 動作確認
 ```shell
 node index.mjs
 ```
+
+# スクリプト一覧
+* index.mjs スキーマを回して定義したSQLを実行して結果を出す
+* compare_schema_table.mjs スキーマごとにSELECTを回してフォルダに出力する
