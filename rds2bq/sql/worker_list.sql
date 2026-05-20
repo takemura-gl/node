@@ -45,7 +45,7 @@ SELECT '${schema}'                              AS schema_name
      , a.txtName                                AS accept_name              -- 所属機関名
      , worker_office_one.accept_office_id       AS accept_office_id         -- 受け入れ事業所ID
      , accept_office.txtName                    AS accept_office_name       -- 受け入れ事業所名
-     , accept_office.txtPost                    AS accept_office_post       -- 受け入れ事業所の郵便番号
+     , REPLACE(accept_office.txtPost, '-', '')  AS accept_office_post       -- 受け入れ事業所の郵便番号（ハイフン除去）
      , accept_office.txtAddress                 AS accept_office_address    -- 受け入れ事業所の住所
      , w.txtName                                AS worker_name              -- 外国人名
      , w.txtNameKanji                           AS worker_name_kanji        -- 外国人名漢字
@@ -54,10 +54,12 @@ SELECT '${schema}'                              AS schema_name
      , enrolled.enrolled_status_name            AS worker_enrolled_name     -- 在籍状況名称
      , w.dtpStartWork1Gou                       AS start_work_1gou          -- 特定技能１号の期間開始  
      , w.dtpEndWork1Gou                         AS end_work_1gou            -- 特定技能１号の期間終了
-     , w.txtPost                                AS worker_post              -- 居住国における郵便番号
+     , REPLACE(w.txtPost, '-', '')              AS worker_post              -- 居住国における郵便番号（ハイフン除去）
      , w.txtAddress                             AS worker_address           -- 居住国における住所
+     , awm.txtKyojyuhi                          AS residence_cost           -- 居住費用
      , w.join_working_date                      AS join_working_date        -- 入社日
      , w.last_working_date                      AS last_working_date        -- 退社日
+     , awm.dtpEmploy_s                          AS employ_start_date        -- 雇用開始日
      , a.cmbBunya                               AS accept_bunya_id          -- 所属機関の分野ID
      , b.txtName                                AS accept_bunya_name        -- 所属機関の分野名
      , a.cmbGyoumuKubun                         AS accept_gyoumu_kubun_id   -- 所属機関の業務区分ID
@@ -66,15 +68,16 @@ SELECT '${schema}'                              AS schema_name
      , wb.txtName                               AS worker_bunya_name        -- 外国人の分野名
      , one.gyoumu_kubun_id                      AS worker_gyoumu_kubun_id   -- 外国人の業務区分ID
      , wg.txtName                               AS worker_gyoumu_kubun_name -- 外国人の業務区分名
-  FROM `${schema}`.worker                    AS w
-      LEFT JOIN `${schema}`.accept           AS a                    ON a.accept_id = w.cmbAccept
-      LEFT JOIN `${schema}`.bunya            AS b                    ON b.bunya_id = a.cmbBunya
-      LEFT JOIN `${schema}`.gyoumu_kubun     AS g                    ON g.gyoumu_kubun_id = a.cmbGyoumuKubun
-      LEFT JOIN worker_kubun_select_one     AS one                  ON one.worker_id = w.worker_id  
-      LEFT JOIN `${schema}`.gyoumu_kubun     AS wg                   ON wg.gyoumu_kubun_id = one.gyoumu_kubun_id
-      LEFT JOIN `${schema}`.bunya            AS wb                   ON wb.bunya_id = wg.bunya_id
-      LEFT JOIN worker_accept_office_one    AS worker_office_one    ON worker_office_one.worker_id = w.worker_id
-      LEFT JOIN `${schema}`.accept_office    AS accept_office        ON accept_office.accept_office_id = worker_office_one.accept_office_id
-      LEFT JOIN enrolled_status_master      AS enrolled             ON enrolled.enrolled_status_id = w.rdbEnrolled
+  FROM `${schema}`.worker                       AS w
+      LEFT JOIN `${schema}`.accept              AS a                    ON a.accept_id = w.cmbAccept
+      LEFT JOIN `${schema}`.bunya               AS b                    ON b.bunya_id = a.cmbBunya
+      LEFT JOIN `${schema}`.gyoumu_kubun        AS g                    ON g.gyoumu_kubun_id = a.cmbGyoumuKubun
+      LEFT JOIN worker_kubun_select_one         AS one                  ON one.worker_id = w.worker_id  
+      LEFT JOIN `${schema}`.gyoumu_kubun        AS wg                   ON wg.gyoumu_kubun_id = one.gyoumu_kubun_id
+      LEFT JOIN `${schema}`.bunya               AS wb                   ON wb.bunya_id = wg.bunya_id
+      LEFT JOIN worker_accept_office_one        AS worker_office_one    ON worker_office_one.worker_id = w.worker_id
+      LEFT JOIN `${schema}`.accept_office       AS accept_office        ON accept_office.accept_office_id = worker_office_one.accept_office_id
+      LEFT JOIN enrolled_status_master          AS enrolled             ON enrolled.enrolled_status_id = w.rdbEnrolled
+      LEFT JOIN `${schema}`.accept_work_master  AS awm                  ON awm.accept_work_master_id = w.cmbRoudouMaster
   WHERE w.del_flg = 0
 ;

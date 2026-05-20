@@ -52,6 +52,7 @@ bq-etl-runner
 
 ```txt id="t4ldg7"
 BigQuery データ編集者
+BigQuery job ユーザー(ジョブユーザーとも呼ばれる。Truncate Table する場合に必須)
 ```
 
 英語だと：
