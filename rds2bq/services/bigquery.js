@@ -33,6 +33,16 @@ export function createBigQueryClient(projectId) {
     return new BigQuery({ projectId });
 }
 
+export async function truncateTable({
+    client,
+    projectId,
+    datasetId,
+    tableId,
+}) {
+    const query = `TRUNCATE TABLE \`${projectId}.${datasetId}.${tableId}\``;
+    await client.query({ query, useLegacySql: false });
+}
+
 export async function insertRows({
     client,
     datasetId,

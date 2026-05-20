@@ -3,7 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import { createMySqlConnection, fetchTenantSchemas, runSelectQuery } from "./services/mysql.js";
-import { createBigQueryClient, writeRowsToBigQuery } from "./services/bigquery.js";
+import { createBigQueryClient, truncateTable, writeRowsToBigQuery } from "./services/bigquery.js";
 import { readSqlFile, renderSqlTemplate } from "./services/sqlLoader.js";
 import { logInfo, logError } from "./services/logger.js";
 
@@ -104,6 +104,22 @@ async function main() {
 	let totalSuccess = 0;
 
 	try {
+		if (String(OUTPUT_MODE).toLowerCase() === "bigquery") {
+			const tableNames = [...new Set(pipelines.map((p) => p.table))];
+			for (const tableName of tableNames) {
+				await truncateTable({
+					client: bqClient,
+					projectId: BQ_PROJECT_ID,
+					datasetId: BQ_DATASET,
+					tableId: tableName,
+				});
+				logInfo("BigQueryテーブルをTRUNCATEしました", {
+					dataset: BQ_DATASET,
+					table: tableName,
+				});
+			}
+		}
+
 		logInfo("テナント一覧を取得します", { targetHost: TARGET_HOST });
 		const schemas = await fetchTenantSchemas(mysqlConn, tenantListSql, TARGET_HOST);
 
