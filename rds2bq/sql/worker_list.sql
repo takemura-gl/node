@@ -8,7 +8,7 @@ WITH worker_kubun_select_one AS (
                 PARTITION BY worker_id
                 ORDER BY id
             ) AS rn
-        FROM worker_kubun_select
+        FROM `${schema}`.worker_kubun_select
     ) t
     WHERE rn = 1
 ) ,
@@ -22,7 +22,7 @@ worker_accept_office_one AS (
                 PARTITION BY worker_id
                 ORDER BY worker_accept_office_id
             ) AS rn
-        FROM worker_accept_office
+        FROM `${schema}`.worker_accept_office
     ) t
     WHERE rn = 1
 ) ,
@@ -39,7 +39,7 @@ enrolled_status_master AS (
     UNION ALL SELECT 9, '転籍(他→自)'
     UNION ALL SELECT 10, 'キャンセル'
 )
-SELECT DATABASE()                               AS schema_name
+SELECT '${schema}'                              AS schema_name
      , w.worker_id                              AS worker_id 
      , w.cmbAccept                              AS accept_id                -- 所属機関ID
      , a.txtName                                AS accept_name              -- 所属機関名
@@ -66,15 +66,15 @@ SELECT DATABASE()                               AS schema_name
      , wb.txtName                               AS worker_bunya_name        -- 外国人の分野名
      , one.gyoumu_kubun_id                      AS worker_gyoumu_kubun_id   -- 外国人の業務区分ID
      , wg.txtName                               AS worker_gyoumu_kubun_name -- 外国人の業務区分名
-  FROM worker                               AS w
-      LEFT JOIN accept                      AS a                    ON a.accept_id = w.cmbAccept
-      LEFT JOIN bunya                       AS b                    ON b.bunya_id = a.cmbBunya
-      LEFT JOIN gyoumu_kubun                AS g                    ON g.gyoumu_kubun_id = a.cmbGyoumuKubun
+  FROM `${schema}`.worker                    AS w
+      LEFT JOIN `${schema}`.accept           AS a                    ON a.accept_id = w.cmbAccept
+      LEFT JOIN `${schema}`.bunya            AS b                    ON b.bunya_id = a.cmbBunya
+      LEFT JOIN `${schema}`.gyoumu_kubun     AS g                    ON g.gyoumu_kubun_id = a.cmbGyoumuKubun
       LEFT JOIN worker_kubun_select_one     AS one                  ON one.worker_id = w.worker_id  
-      LEFT JOIN gyoumu_kubun                AS wg                   ON wg.gyoumu_kubun_id = one.gyoumu_kubun_id
-      LEFT JOIN bunya                       AS wb                   ON wb.bunya_id = wg.bunya_id
+      LEFT JOIN `${schema}`.gyoumu_kubun     AS wg                   ON wg.gyoumu_kubun_id = one.gyoumu_kubun_id
+      LEFT JOIN `${schema}`.bunya            AS wb                   ON wb.bunya_id = wg.bunya_id
       LEFT JOIN worker_accept_office_one    AS worker_office_one    ON worker_office_one.worker_id = w.worker_id
-      LEFT JOIN accept_office               AS accept_office        ON accept_office.accept_office_id = worker_office_one.accept_office_id
+      LEFT JOIN `${schema}`.accept_office    AS accept_office        ON accept_office.accept_office_id = worker_office_one.accept_office_id
       LEFT JOIN enrolled_status_master      AS enrolled             ON enrolled.enrolled_status_id = w.rdbEnrolled
   WHERE w.del_flg = 0
 ;
