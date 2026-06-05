@@ -27,7 +27,9 @@ CREATE TABLE worker.`worker_list` (
     worker_bunya_id             INT64 OPTIONS(description='外国人の分野ID'),
     worker_bunya_name           STRING OPTIONS(description='外国人の分野名'),
     worker_gyoumu_kubun_id      INT64 OPTIONS(description='外国人の業務区分ID'),
-    worker_gyoumu_kubun_name    STRING OPTIONS(description='外国人の業務区分名')
+    worker_gyoumu_kubun_name    STRING OPTIONS(description='外国人の業務区分名'),
+    entry_plan_date             DATE OPTIONS(description='入国予定日'),
+    entry_date                  DATE OPTIONS(description='入国日')
 )
 OPTIONS (
     description = '特定技能外国人エクスポートテーブル'

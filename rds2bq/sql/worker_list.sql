@@ -68,6 +68,8 @@ SELECT '${schema}'                              AS schema_name
      , wb.txtName                               AS worker_bunya_name        -- 外国人の分野名
      , one.gyoumu_kubun_id                      AS worker_gyoumu_kubun_id   -- 外国人の業務区分ID
      , wg.txtName                               AS worker_gyoumu_kubun_name -- 外国人の業務区分名
+     , w.dtpEntryPlan                           AS entry_plan_date          -- 入国予定日
+     , w.dtpEntry                               AS entry_date               -- 入国日
   FROM `${schema}`.worker                       AS w
       LEFT JOIN `${schema}`.accept              AS a                    ON a.accept_id = w.cmbAccept
       LEFT JOIN `${schema}`.bunya               AS b                    ON b.bunya_id = a.cmbBunya
