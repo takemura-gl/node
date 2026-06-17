@@ -52,6 +52,7 @@ npm start
 
 - `sql_run/` の SQL に `${schema}` などのプレースホルダは不要
 - テナントごとに DB 接続先が切り替わるため、テーブル名はスキーマ修飾なしで書ける
+- 1 ファイルに複数 SQL 文（`START TRANSACTION` / 複数 `UPDATE` / `COMMIT` など）を書ける
 
 例
 

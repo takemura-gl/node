@@ -17,7 +17,7 @@ export async function createMySqlConnection({
             user,
             password,
             database,
-            multipleStatements: false,
+            multipleStatements: true,
             rowsAsArray: false,
             connectTimeout: 15000,
         });
@@ -39,19 +39,39 @@ export async function fetchTenantSchemas(conn, tenantListSql, targetHost) {
 }
 
 export async function runQuery(conn, sql) {
-    const [result] = await conn.query(sql);
+    const [results] = await conn.query(sql);
 
-    if (Array.isArray(result)) {
+    if (!Array.isArray(results)) {
         return {
-            type: "select",
-            rowCount: result.length,
-            affectedRows: result.length,
+            type: "dml",
+            affectedRows: results.affectedRows ?? 0,
+            rowCount: results.affectedRows ?? 0,
+        };
+    }
+
+    const isMultiStatement = results.some(
+        (part) => part && !Array.isArray(part) && "affectedRows" in part,
+    );
+
+    if (isMultiStatement) {
+        const totalAffected = results.reduce((sum, part) => {
+            if (part && !Array.isArray(part) && typeof part.affectedRows === "number") {
+                return sum + part.affectedRows;
+            }
+            return sum;
+        }, 0);
+
+        return {
+            type: "dml",
+            affectedRows: totalAffected,
+            rowCount: totalAffected,
+            statementCount: results.length,
         };
     }
 
     return {
-        type: "dml",
-        affectedRows: result.affectedRows ?? 0,
-        rowCount: result.affectedRows ?? 0,
+        type: "select",
+        rowCount: results.length,
+        affectedRows: results.length,
     };
 }
