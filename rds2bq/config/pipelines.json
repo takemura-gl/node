@@ -1,0 +1,7 @@
+[
+  {
+    "name": "worker",
+    "sqlFile": "worker_list.sql",
+    "table": "worker_list"
+  }
+]

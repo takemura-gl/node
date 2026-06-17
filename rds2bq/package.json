@@ -1,0 +1,14 @@
+{
+  "name": "rds2bq",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "@google-cloud/bigquery": "^7.9.0",
+    "dotenv": "^16.4.5",
+    "mysql2": "^3.11.0"
+  }
+}
