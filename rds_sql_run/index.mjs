@@ -2,15 +2,22 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
-import { createMySqlConnection, fetchTenantSchemas, runQuery } from "./services/mysql.js";
+import { createMySqlConnection, fetchTenantSchemas, runQuery, useSchema } from "./services/mysql.js";
 import { readSqlFile, renderSqlTemplate } from "./services/sqlLoader.js";
-import { logInfo, logError } from "./services/logger.js";
+import { logInfo, logError, getLogFilePath } from "./services/logger.js";
 import { formatError } from "./services/errors.js";
 
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+if (process.env.LOG_FILE && !path.isAbsolute(process.env.LOG_FILE)) {
+	process.env.LOG_FILE = path.join(__dirname, process.env.LOG_FILE);
+}
+if (process.env.LOG_DIR && !path.isAbsolute(process.env.LOG_DIR)) {
+	process.env.LOG_DIR = path.join(__dirname, process.env.LOG_DIR);
+}
 
 const {
 	DB_HOST,
@@ -79,6 +86,11 @@ async function main() {
 	const failed = [];
 	let totalSuccess = 0;
 
+	const logFile = getLogFilePath();
+	if (logFile) {
+		logInfo("ログファイルに出力します", { logFile });
+	}
+
 	try {
 		logInfo("テナント一覧を取得します", { targetHost: TARGET_HOST });
 		const schemas = await fetchTenantSchemas(mysqlConn, tenantListSql, TARGET_HOST);
@@ -94,15 +106,34 @@ async function main() {
 		});
 
 		for (const schema of schemas) {
+			const tenantContext = {
+				...connectionContext,
+				database: schema,
+			};
+
+			try {
+				await useSchema(mysqlConn, schema);
+			} catch (err) {
+				const message = formatError(err, tenantContext);
+				logError("テナントDB切り替え失敗。当該テナントをスキップします", {
+					tenant: schema,
+					error: message,
+				});
+				for (const sqlFile of sqlRunFiles) {
+					failed.push({
+						tenant: schema,
+						sqlFile,
+						error: message,
+					});
+				}
+				continue;
+			}
+
 			for (const sqlFile of sqlRunFiles) {
 				const startedAt = Date.now();
 
 				try {
-					const rawSql = sqlRunMap.get(sqlFile);
-					const sql = renderSqlTemplate(rawSql, {
-						schema,
-						baseDatabase: BASE_DATABASE,
-					});
+					const sql = sqlRunMap.get(sqlFile);
 					const result = await runQuery(mysqlConn, sql);
 
 					totalSuccess += 1;
@@ -115,7 +146,7 @@ async function main() {
 						elapsedMs: Date.now() - startedAt,
 					});
 				} catch (err) {
-					const message = formatError(err, connectionContext);
+					const message = formatError(err, tenantContext);
 					failed.push({
 						tenant: schema,
 						sqlFile,

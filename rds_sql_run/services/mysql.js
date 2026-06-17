@@ -28,6 +28,11 @@ export async function createMySqlConnection({
     }
 }
 
+export async function useSchema(conn, schema) {
+    const escaped = String(schema).replace(/`/g, "``");
+    await conn.query(`USE \`${escaped}\``);
+}
+
 export async function fetchTenantSchemas(conn, tenantListSql, targetHost) {
     const [rows] = await conn.execute(tenantListSql, [targetHost]);
     return rows.map((row) => row.db_name).filter(Boolean);

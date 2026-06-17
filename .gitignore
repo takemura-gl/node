@@ -4,5 +4,6 @@
 node_modules
 dist
 out
+logs
 
 gcp-key.json

@@ -45,23 +45,40 @@ npm start
 
 1. `tenant_list.sql` を実行して対象テナント一覧を取得
 2. `sql_run/` 内の `.sql` ファイルをファイル名昇順で読み込む
-3. 各テナント × 各 SQL ファイルについて `${schema}` 等を展開して MySQL 実行
+3. 各テナントについて `USE \`schema\`` で DB を切り替え、各 SQL ファイルをそのまま実行
 4. 失敗があっても継続し、最後に失敗一覧を表示
 
 ## SQL 実装ルール
 
-- `USE schema;` は使わない
-- `${schema}` / `${baseDatabase}` を使って完全修飾する
+- `sql_run/` の SQL に `${schema}` などのプレースホルダは不要
+- テナントごとに DB 接続先が切り替わるため、テーブル名はスキーマ修飾なしで書ける
 
 例
 
 ```sql
-UPDATE `${schema}`.some_table
+UPDATE some_table
 SET col = 'value'
 WHERE id = 1;
 ```
 
 ## ログと終了コード
+
+コンソールには常に出力されます。ファイル出力は環境変数で有効化できます。
+
+| 環境変数 | 説明 |
+| --- | --- |
+| `LOG_FILE` | 出力先ファイルを直接指定（例: `logs/run.log`） |
+| `LOG_DIR` | ディレクトリ指定。`run-2026-06-17T08-30-00.log` のように自動命名 |
+
+```bash
+# ファイル名固定
+LOG_FILE=logs/run.log npm start
+
+# 実行ごとにタイムスタンプ付きファイル（npm script）
+npm run start:log
+```
+
+`.env` に `LOG_FILE` または `LOG_DIR` を書いても OK です。
 
 - 成功: `[INFO] SQL実行完了 tenant=... sqlFile=... affectedRows=...`
 - 失敗: `[ERROR] SQL実行失敗 ...`

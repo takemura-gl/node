@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node index.mjs"
+    "start": "node index.mjs",
+    "start:log": "node scripts/start-log.mjs"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
